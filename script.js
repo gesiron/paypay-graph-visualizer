@@ -88,19 +88,9 @@ async function loadTradePoints() {
 }
 
 function drawCharts(period) {
-  const now = luxon.DateTime.now();
-  let startDate;
-  switch (period) {
-    case "1m": startDate = now.minus({ months: 1 }); break;
-    case "3m": startDate = now.minus({ months: 3 }); break;
-    case "1y": startDate = now.minus({ years: 1 }); break;
-    case "3y": startDate = now.minus({ years: 3 }); break;
-    case "5y": startDate = now.minus({ years: 5 }); break;
-    default: startDate = now.minus({ months: 1 });
-  }
-
-  const gldFiltered = tradePoints.GLD.filter(tp => luxon.DateTime.fromISO(tp.date) >= startDate);
-  const spxlFiltered = tradePoints.SPXL.filter(tp => luxon.DateTime.fromISO(tp.date) >= startDate);
+  // ✅ フィルター解除：すべての履歴を描画
+  const gldFiltered = tradePoints.GLD;
+  const spxlFiltered = tradePoints.SPXL;
 
   const gldData = gldFiltered.map(tp => ({ x: tp.date, y: tp.price }));
   const spxlData = spxlFiltered.map(tp => ({ x: tp.date, y: tp.price }));
@@ -113,10 +103,10 @@ function drawCharts(period) {
         data,
         borderColor: color,
         backgroundColor: color + "33",
-        tension: 0.4, // 線を滑らかに
-        pointRadius: 4, // 点を大きく
+        tension: 0.4,
+        pointRadius: 4,
         pointBackgroundColor: color,
-        borderWidth: 3 // 線を太く
+        borderWidth: 3
       }]
     },
     options: {
@@ -145,7 +135,6 @@ document.getElementById("periodSelector").addEventListener("change", (e) => {
 (async () => {
   await loadTradePoints();
 
-  // ✅ 履歴を強制挿入（10点以上）
   tradePoints.GLD = [
     { date: "2021-01-01", price: 178 },
     { date: "2021-06-01", price: 180 },
