@@ -21,7 +21,7 @@ const tradePoints = { GLD: [], SPXL: [] }; // 履歴用
 const tradeLog = { GLD: [], SPXL: [] };    // Firestore売買履歴用
 
 async function fetchETFPrice(symbol) {
-  const apiKey = "XKSZLMWIKG9JRKBK";
+  const apiKey = "V5PSUW7YL5FCNL4R";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
   try {
     const response = await fetch(url);
@@ -88,7 +88,7 @@ async function loadTradePoints() {
 }
 
 async function fetchHistory(symbol) {
-  const apiKey = "XKSZLMWIKG9JRKBK";
+  const apiKey = "V5PSUW7YL5FCNL4R";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=full`;
   try {
     const response = await fetch(url);
