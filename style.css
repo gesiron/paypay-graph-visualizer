@@ -1,6 +1,21 @@
-body { font-family: system-ui, sans-serif; margin: 20px; }
-h1 { color: #0b6cff; margin-bottom: 16px; }
-.selector, .form-section { margin: 16px 0; }
-.chart-container { position: relative; height: 320px; }
-label { margin-right: 8px; }
-input, select, button { margin-right: 8px; padding: 6px 10px; }
+body {
+  font-family: sans-serif;
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.selector, .form-section {
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  max-width: 600px;
+  width: 100%;
+  margin-bottom: 40px;
+}
+
+input, select, button {
+  margin: 5px;
+  padding: 5px;
+  font-size: 1em;
+}
