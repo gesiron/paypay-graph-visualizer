@@ -17,9 +17,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const tradesRef = collection(db, "trades");
 
-// ✅ 最新価格取得（単発）
 async function fetchETFPrice(symbol) {
-  const apiKey = "XYL4EVSMPCABG61C"; // あなたのAPIキー
+  const apiKey = "XYL4EVSMPCABG61C";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
   try {
     const response = await fetch(url);
@@ -49,7 +48,6 @@ window.showPrice = async function showPrice() {
 
 const tradePoints = { GLD: [], SPXL: [] };
 
-// ✅ 売買ポイント追加
 window.addOrUpdateTradePoint = async function addOrUpdateTradePoint() {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -77,7 +75,6 @@ window.addOrUpdateTradePoint = async function addOrUpdateTradePoint() {
   drawCharts(document.getElementById("periodSelector").value);
 };
 
-// ✅ 売買ポイント削除
 window.deleteTradePoint = async function deleteTradePoint() {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -87,18 +84,13 @@ window.deleteTradePoint = async function deleteTradePoint() {
   drawCharts(document.getElementById("periodSelector").value);
 };
 
-// ✅ Firestoreから売買履歴を読み込み
 async function loadTradePoints() {
   const snapshot = await getDocs(tradesRef);
   tradePoints.GLD = [];
   tradePoints.SPXL = [];
 
-  let gldCount = 0;
-  let spxlCount = 0;
-
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
-    console.log("Firestoreデータ:", data);
     const normalizedDate = String(data.date).replace(/\//g, "-").substring(0, 10);
     if (tradePoints[data.course]) {
       tradePoints[data.course].push({
@@ -107,17 +99,12 @@ async function loadTradePoints() {
         amount: Number(data.amount),
         price: Number(data.price)
       });
-      if (data.course === "GLD") gldCount++;
-      if (data.course === "SPXL") spxlCount++;
     }
   });
-
-  console.log("取得済みスナップ数 GLD件数:", gldCount, "SPXL件数:", spxlCount);
 }
 
-// ✅ 過去5年分の履歴取得
 async function fetchHistory(symbol) {
-  const apiKey = "XYL4EVSMPCABG61C"; // あなたのAPIキー
+  const apiKey = "XYL4EVSMPCABG61C";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=full`;
 
   try {
@@ -144,7 +131,6 @@ async function fetchHistory(symbol) {
   }
 }
 
-// ✅ グラフ描画
 function drawCharts(period) {
   const now = luxon.DateTime.now();
   let startDate;
@@ -165,8 +151,6 @@ function drawCharts(period) {
     const dt = luxon.DateTime.fromISO(tp.date);
     return tp.price !== null && dt.isValid && dt >= startDate;
   });
-
-  console.log("描画対象件数 GLD件数:", gldFiltered.length, "SPXL件数:", spxlFiltered.length);
 
   const gldData = gldFiltered.map(tp => ({ x: tp.date, y: tp.price }));
   const spxlData = spxlFiltered.map(tp => ({ x: tp.date, y: tp.price }));
@@ -201,4 +185,16 @@ function drawCharts(period) {
   if (window.spxlChartInstance) window.spxlChartInstance.destroy();
 
   window.gldChartInstance = new ChartJS(document.getElementById("gldChart"), config("GLD価格", gldData, "gold"));
-  window.spxlChartInstance = new
+  window.spxlChartInstance = new ChartJS(document.getElementById("spxlChart"), config("SPXL価格", spxlData, "red"));
+}
+
+document.getElementById("periodSelector").addEventListener("change", (e) => {
+  drawCharts(e.target.value);
+});
+
+(async () => {
+  await loadTradePoints();
+  tradePoints.GLD = await fetchHistory("GLD");
+  tradePoints.SPXL = await fetchHistory("SPXL");
+  drawCharts("5y");
+})();
