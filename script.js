@@ -19,6 +19,7 @@ const tradesRef = collection(db, "trades");
 
 const tradePoints = { GLD: [], SPXL: [] };
 const tradeLog = { GLD: [], SPXL: [] };
+window.tradePoints = tradePoints; // ✅ Console確認用に公開
 
 async function fetchETFPrice(symbol) {
   const apiKey = "V5PSUW7YL5FCNL4R";
@@ -88,8 +89,7 @@ async function loadTradePoints() {
 }
 
 function drawCharts(period) {
-  // ✅ フィルター解除：すべての履歴を描画
-  const gldFiltered = tradePoints.GLD;
+  const gldFiltered = tradePoints.GLD; // ✅ フィルター解除
   const spxlFiltered = tradePoints.SPXL;
 
   const gldData = gldFiltered.map(tp => ({ x: tp.date, y: tp.price }));
