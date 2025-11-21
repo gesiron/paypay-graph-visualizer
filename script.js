@@ -19,7 +19,7 @@ const tradesRef = collection(db, "trades");
 
 const tradePoints = { GLD: [], SPXL: [] };
 const tradeLog = { GLD: [], SPXL: [] };
-window.tradePoints = tradePoints; // Console確認用
+window.tradePoints = tradePoints; // ✅ Console確認用に公開
 
 async function fetchETFPrice(symbol) {
   const apiKey = "V5PSUW7YL5FCNL4R";
@@ -135,7 +135,7 @@ document.getElementById("periodSelector").addEventListener("change", (e) => {
 (async () => {
   await loadTradePoints();
 
-  tradePoints.GLD = [
+  window.tradePoints.GLD = [
     { date: "2025-11-21", price: 195 },
     { date: "2025-11-22", price: 196 },
     { date: "2025-11-23", price: 197 },
@@ -147,7 +147,7 @@ document.getElementById("periodSelector").addEventListener("change", (e) => {
     { date: "2025-11-29", price: 203 },
     { date: "2025-11-30", price: 204 }
   ];
-  tradePoints.SPXL = [
+  window.tradePoints.SPXL = [
     { date: "2025-11-21", price: 105 },
     { date: "2025-11-22", price: 106 },
     { date: "2025-11-23", price: 107 },
