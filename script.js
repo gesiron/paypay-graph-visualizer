@@ -17,6 +17,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const tradesRef = collection(db, "trades");
 
+const tradePoints = { GLD: [], SPXL: [] }; // 履歴用
+const tradeLog = { GLD: [], SPXL: [] };    // Firestore売買履歴用
+
 async function fetchETFPrice(symbol) {
   const apiKey = "XKSZLMWIKG9JRKBK";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
@@ -40,8 +43,6 @@ window.showPrice = async function showPrice() {
     result ? `${result.symbol} の最新価格（${result.date}）: ${result.close} USD`
            : "価格の取得に失敗しました。";
 };
-
-const tradePoints = { GLD: [], SPXL: [] };
 
 window.addOrUpdateTradePoint = async function () {
   const course = document.getElementById("courseSelect").value;
@@ -69,14 +70,14 @@ window.deleteTradePoint = async function () {
 
 async function loadTradePoints() {
   const snapshot = await getDocs(tradesRef);
-  tradePoints.GLD = [];
-  tradePoints.SPXL = [];
+  tradeLog.GLD = [];
+  tradeLog.SPXL = [];
 
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
     const normalizedDate = String(data.date).replace(/\//g, "-").substring(0, 10);
-    if (tradePoints[data.course]) {
-      tradePoints[data.course].push({
+    if (tradeLog[data.course]) {
+      tradeLog[data.course].push({
         date: normalizedDate,
         type: data.type,
         amount: Number(data.amount),
@@ -161,10 +162,8 @@ document.getElementById("periodSelector").addEventListener("change", (e) => {
 });
 
 (async () => {
-  const gldHistory = await fetchHistory("GLD");
-  const spxlHistory = await fetchHistory("SPXL");
+  tradePoints.GLD = await fetchHistory("GLD");
+  tradePoints.SPXL = await fetchHistory("SPXL");
   await loadTradePoints();
-  tradePoints.GLD = gldHistory;
-  tradePoints.SPXL = spxlHistory;
   drawCharts("5y");
 })();
