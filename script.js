@@ -1,6 +1,18 @@
 const ChartJS = window.Chart;
 const luxon = window.luxon;
 
+// Chart.js に Luxon adapter を明示的に登録
+ChartJS.adapters._date.override({
+  formats: { date: 'yyyy-MM-dd' },
+  parse: (value) => {
+    const dt = luxon.DateTime.fromISO(value);
+    return dt.isValid ? dt.toMillis() : null;
+  },
+  format: (time, format) => {
+    return luxon.DateTime.fromMillis(time).toFormat(format);
+  }
+});
+
 window.gldHistory = [];
 window.spxlHistory = [];
 window.gldChartInstance = null;
@@ -50,6 +62,16 @@ window.loadCSVData = async function (file, target) {
 };
 
 function drawHistoryCharts() {
+  // 既存グラフを破棄（Canvas再利用エラー防止）
+  if (window.gldChartInstance) {
+    window.gldChartInstance.destroy();
+    window.gldChartInstance = null;
+  }
+  if (window.spxlChartInstance) {
+    window.spxlChartInstance.destroy();
+    window.spxlChartInstance = null;
+  }
+
   const config = (label, data, color) => ({
     type: "line",
     data: {
@@ -83,9 +105,6 @@ function drawHistoryCharts() {
       }
     }
   });
-
-  if (window.gldChartInstance) window.gldChartInstance.destroy();
-  if (window.spxlChartInstance) window.spxlChartInstance.destroy();
 
   if (window.gldHistory.length > 0) {
     window.gldChartInstance = new ChartJS(
