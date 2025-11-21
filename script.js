@@ -21,6 +21,7 @@ const tradePoints = { GLD: [], SPXL: [] };
 const tradeLog = { GLD: [], SPXL: [] };
 window.tradePoints = tradePoints;
 
+// --- ETF価格取得 ---
 async function fetchETFPrice(symbol) {
   const apiKey = "V5PSUW7YL5FCNL4R";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
@@ -37,6 +38,7 @@ async function fetchETFPrice(symbol) {
   }
 }
 
+// --- 価格表示 ---
 window.showPrice = async function showPrice() {
   const symbol = document.getElementById("symbolInput").value.trim().toUpperCase();
   const result = await fetchETFPrice(symbol);
@@ -45,6 +47,7 @@ window.showPrice = async function showPrice() {
            : "価格の取得に失敗しました。";
 };
 
+// --- 売買ポイント追加 ---
 window.addOrUpdateTradePoint = async function () {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -61,6 +64,7 @@ window.addOrUpdateTradePoint = async function () {
   await loadTradePoints();
 };
 
+// --- 売買ポイント削除 ---
 window.deleteTradePoint = async function () {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -69,6 +73,7 @@ window.deleteTradePoint = async function () {
   await loadTradePoints();
 };
 
+// --- Firebaseからデータ読み込み ---
 async function loadTradePoints() {
   const snapshot = await getDocs(tradesRef);
   tradeLog.GLD = [];
@@ -93,9 +98,28 @@ async function loadTradePoints() {
   drawCharts("1m");
 }
 
+// --- グラフ描画（期間フィルタ付き） ---
 function drawCharts(period) {
-  const gldFiltered = tradePoints.GLD;
-  const spxlFiltered = tradePoints.SPXL;
+  const now = luxon.DateTime.now();
+  let startDate;
+
+  if (period === "1m") {
+    startDate = now.minus({ months: 1 });
+  } else if (period === "5y") {
+    startDate = now.minus({ years: 5 });
+  } else {
+    startDate = luxon.DateTime.fromISO("2000-01-01"); // fallback
+  }
+
+  const gldFiltered = tradePoints.GLD.filter(tp => {
+    const date = luxon.DateTime.fromISO(tp.date);
+    return date >= startDate;
+  });
+
+  const spxlFiltered = tradePoints.SPXL.filter(tp => {
+    const date = luxon.DateTime.fromISO(tp.date);
+    return date >= startDate;
+  });
 
   const gldData = gldFiltered
     .map(tp => ({
@@ -144,10 +168,12 @@ function drawCharts(period) {
   window.spxlChartInstance = new ChartJS(document.getElementById("spxlChart"), config("SPXL価格", spxlData, "red"));
 }
 
+// --- 表示期間切り替え ---
 document.getElementById("periodSelector").addEventListener("change", (e) => {
   drawCharts(e.target.value);
 });
 
+// --- 初期化 ---
 (async () => {
   await loadTradePoints();
 })();
