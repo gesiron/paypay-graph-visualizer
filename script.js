@@ -170,28 +170,7 @@ function drawCharts(period) {
   window.spxlChartInstance = new ChartJS(document.getElementById("spxlChart"), config("SPXL価格", spxlData, "red"));
 }
 
-document.getElementById("periodSelector").addEventListener("change",
-  (e) => {
-    drawCharts(e.target.value);
-  }
-);
-
-// 初期読み込み
-(async () => {
-  await loadTradePoints();
-  drawCharts("1m");
-})();
-document.getElementById("periodSelector").addEventListener("change",
-  (e) => {
-    drawCharts(e.target.value);
-  }
-);
-
-// 初期読み込み
-(async () => {
-  await loadTradePoints();
-  drawCharts("1m");
-})();
+// ✅ イベントリスナーと初期読み込みは1回だけ
 document.getElementById("periodSelector").addEventListener("change",
   (e) => {
     drawCharts(e.target.value);
