@@ -17,8 +17,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const tradesRef = collection(db, "trades");
 
+// ✅ 最新価格取得（単発）
 async function fetchETFPrice(symbol) {
-  const apiKey = "XYL4EVSMPCABG61C";
+  const apiKey = "XYL4EVSMPCABG61C"; // あなたのAPIキー
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
   try {
     const response = await fetch(url);
@@ -48,6 +49,7 @@ window.showPrice = async function showPrice() {
 
 const tradePoints = { GLD: [], SPXL: [] };
 
+// ✅ 売買ポイント追加
 window.addOrUpdateTradePoint = async function addOrUpdateTradePoint() {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -75,6 +77,7 @@ window.addOrUpdateTradePoint = async function addOrUpdateTradePoint() {
   drawCharts(document.getElementById("periodSelector").value);
 };
 
+// ✅ 売買ポイント削除
 window.deleteTradePoint = async function deleteTradePoint() {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -84,6 +87,7 @@ window.deleteTradePoint = async function deleteTradePoint() {
   drawCharts(document.getElementById("periodSelector").value);
 };
 
+// ✅ Firestoreから売買履歴を読み込み
 async function loadTradePoints() {
   const snapshot = await getDocs(tradesRef);
   tradePoints.GLD = [];
@@ -95,13 +99,13 @@ async function loadTradePoints() {
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
     console.log("Firestoreデータ:", data);
-    const normalizedDate = String(data.date).replace(/\//g, "-");
+    const normalizedDate = String(data.date).replace(/\//g, "-").substring(0, 10);
     if (tradePoints[data.course]) {
       tradePoints[data.course].push({
         date: normalizedDate,
         type: data.type,
-        amount: data.amount,
-        price: data.price
+        amount: Number(data.amount),
+        price: Number(data.price)
       });
       if (data.course === "GLD") gldCount++;
       if (data.course === "SPXL") spxlCount++;
@@ -111,6 +115,36 @@ async function loadTradePoints() {
   console.log("取得済みスナップ数 GLD件数:", gldCount, "SPXL件数:", spxlCount);
 }
 
+// ✅ 過去5年分の履歴取得
+async function fetchHistory(symbol) {
+  const apiKey = "XYL4EVSMPCABG61C"; // あなたのAPIキー
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=full`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    if (!data["Time Series (Daily)"]) {
+      console.error("履歴データ取得失敗:", data);
+      return [];
+    }
+
+    const ts = data["Time Series (Daily)"];
+    const fiveYearsAgo = luxon.DateTime.now().minus({ years: 5 });
+
+    return Object.entries(ts)
+      .map(([date, values]) => ({
+        date,
+        price: parseFloat(values["4. close"])
+      }))
+      .filter(d => luxon.DateTime.fromISO(d.date) >= fiveYearsAgo)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  } catch (error) {
+    console.error("API呼び出しエラー:", error);
+    return [];
+  }
+}
+
+// ✅ グラフ描画
 function drawCharts(period) {
   const now = luxon.DateTime.now();
   let startDate;
@@ -146,9 +180,9 @@ function drawCharts(period) {
         borderColor: color,
         backgroundColor: color + "33",
         tension: 0.3,
-        pointRadius: 6,
+        pointRadius: 2,
         pointBackgroundColor: color,
-        borderWidth: 3
+        borderWidth: 2
       }]
     },
     options: {
@@ -167,18 +201,4 @@ function drawCharts(period) {
   if (window.spxlChartInstance) window.spxlChartInstance.destroy();
 
   window.gldChartInstance = new ChartJS(document.getElementById("gldChart"), config("GLD価格", gldData, "gold"));
-  window.spxlChartInstance = new ChartJS(document.getElementById("spxlChart"), config("SPXL価格", spxlData, "red"));
-}
-
-// ✅ イベントリスナーと初期読み込みは1回だけ
-document.getElementById("periodSelector").addEventListener("change",
-  (e) => {
-    drawCharts(e.target.value);
-  }
-);
-
-// 初期読み込み
-(async () => {
-  await loadTradePoints();
-  drawCharts("1m");
-})();
+  window.spxlChartInstance = new
