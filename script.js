@@ -21,6 +21,7 @@ const tradePoints = { GLD: [], SPXL: [] };
 const tradeLog = { GLD: [], SPXL: [] };
 window.tradePoints = tradePoints; // Console確認用に公開
 
+// --- ETF価格取得 ---
 async function fetchETFPrice(symbol) {
   const apiKey = "V5PSUW7YL5FCNL4R";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
@@ -37,6 +38,7 @@ async function fetchETFPrice(symbol) {
   }
 }
 
+// --- 価格表示 ---
 window.showPrice = async function showPrice() {
   const symbol = document.getElementById("symbolInput").value.trim().toUpperCase();
   const result = await fetchETFPrice(symbol);
@@ -45,6 +47,7 @@ window.showPrice = async function showPrice() {
            : "価格の取得に失敗しました。";
 };
 
+// --- 売買ポイント追加 ---
 window.addOrUpdateTradePoint = async function () {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -61,6 +64,7 @@ window.addOrUpdateTradePoint = async function () {
   await loadTradePoints();
 };
 
+// --- 売買ポイント削除 ---
 window.deleteTradePoint = async function () {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
@@ -69,6 +73,7 @@ window.deleteTradePoint = async function () {
   await loadTradePoints();
 };
 
+// --- Firebaseからデータ読み込み ---
 async function loadTradePoints() {
   const snapshot = await getDocs(tradesRef);
   tradeLog.GLD = [];
@@ -86,14 +91,26 @@ async function loadTradePoints() {
       });
     }
   });
+
+  // 🔽 グラフ用データに反映
+  tradePoints.GLD = tradeLog.GLD;
+  tradePoints.SPXL = tradeLog.SPXL;
+
+  drawCharts("1m"); // データ更新後に再描画
 }
 
+// --- グラフ描画 ---
 function drawCharts(period) {
   const gldFiltered = tradePoints.GLD;
   const spxlFiltered = tradePoints.SPXL;
 
-  const gldData = gldFiltered.map(tp => ({ x: tp.date, y: Number(tp.price) }));
-  const spxlData = spxlFiltered.map(tp => ({ x: tp.date, y: Number(tp.price) }));
+  const gldData = gldFiltered
+    .map(tp => ({ x: tp.date, y: Number(tp.price) }))
+    .filter(p => !isNaN(p.y));
+
+  const spxlData = spxlFiltered
+    .map(tp => ({ x: tp.date, y: Number(tp.price) }))
+    .filter(p => !isNaN(p.y));
 
   const config = (label, data, color) => ({
     type: "line",
@@ -128,37 +145,12 @@ function drawCharts(period) {
   window.spxlChartInstance = new ChartJS(document.getElementById("spxlChart"), config("SPXL価格", spxlData, "red"));
 }
 
+// --- 表示期間切り替え ---
 document.getElementById("periodSelector").addEventListener("change", (e) => {
   drawCharts(e.target.value);
 });
 
+// --- 初期化 ---
 (async () => {
   await loadTradePoints();
-
-  window.tradePoints.GLD = [
-    { date: "2025-11-21", price: 195 },
-    { date: "2025-11-22", price: 196 },
-    { date: "2025-11-23", price: 197 },
-    { date: "2025-11-24", price: 198 },
-    { date: "2025-11-25", price: 199 },
-    { date: "2025-11-26", price: 200 },
-    { date: "2025-11-27", price: 201 },
-    { date: "2025-11-28", price: 202 },
-    { date: "2025-11-29", price: 203 },
-    { date: "2025-11-30", price: 204 }
-  ];
-  window.tradePoints.SPXL = [
-    { date: "2025-11-21", price: 105 },
-    { date: "2025-11-22", price: 106 },
-    { date: "2025-11-23", price: 107 },
-    { date: "2025-11-24", price: 108 },
-    { date: "2025-11-25", price: 109 },
-    { date: "2025-11-26", price: 110 },
-    { date: "2025-11-27", price: 111 },
-    { date: "2025-11-28", price: 112 },
-    { date: "2025-11-29", price: 113 },
-    { date: "2025-11-30", price: 114 }
-  ];
-
-  drawCharts("1m");
 })();
