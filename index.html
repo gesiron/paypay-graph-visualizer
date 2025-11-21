@@ -31,16 +31,14 @@
     </select>
     <br>
     日付：<input type="date" id="tradeDate">
+    種類：
+    <select id="tradeType">
+      <option value="buy">買い</option>
+      <option value="sell">売り</option>
+    </select>
     金額：<input type="number" id="tradeAmount" placeholder="例：1000">
     <button onclick="addOrUpdateTradePoint()">追加/更新</button>
     <button onclick="deleteTradePoint()">削除</button>
-  </div>
-
-  <div class="form-section">
-    <h2>ETF価格の取得</h2>
-    ETFシンボル：<input type="text" id="symbolInput" placeholder="例：SPY, GLD, SPXL">
-    <button onclick="showPrice()">価格を取得</button>
-    <div id="priceResult"></div>
   </div>
 
   <section>
