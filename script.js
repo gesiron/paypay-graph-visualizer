@@ -1,5 +1,4 @@
 const ChartJS = window.Chart;
-const luxon = window.luxon;
 
 window.gldHistory = [];
 window.spxlHistory = [];
@@ -13,7 +12,7 @@ window.loadCSVData = async function (file, target) {
     complete: function (results) {
       const data = results.data
         .map(row => {
-          const date = luxon.DateTime.fromFormat(row.Date, "MMM DD, YYYY");
+          const date = window.luxon.DateTime.fromFormat(row.Date, "MMM DD, YYYY");
           const price = parseFloat(row["Price"]);
           return date.isValid && !isNaN(price)
             ? { x: date.toISODate(), y: price }
