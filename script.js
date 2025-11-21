@@ -72,7 +72,6 @@ window.addOrUpdateTradePoint = async function addOrUpdateTradePoint() {
 
   await setDoc(doc(tradesRef, docId), { course, date, type, amount, price });
   await loadTradePoints();
-  drawCharts(document.getElementById("periodSelector").value);
 };
 
 window.deleteTradePoint = async function deleteTradePoint() {
@@ -81,7 +80,6 @@ window.deleteTradePoint = async function deleteTradePoint() {
   const docId = `${course}_${date}`;
   await deleteDoc(doc(tradesRef, docId));
   await loadTradePoints();
-  drawCharts(document.getElementById("periodSelector").value);
 };
 
 async function loadTradePoints() {
@@ -193,8 +191,10 @@ document.getElementById("periodSelector").addEventListener("change", (e) => {
 });
 
 (async () => {
+  const gldHistory = await fetchHistory("GLD");
+  const spxlHistory = await fetchHistory("SPXL");
   await loadTradePoints();
-  tradePoints.GLD = await fetchHistory("GLD");
-  tradePoints.SPXL = await fetchHistory("SPXL");
+  tradePoints.GLD = gldHistory;
+  tradePoints.SPXL = spxlHistory;
   drawCharts("5y");
 })();
