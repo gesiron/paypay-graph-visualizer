@@ -19,7 +19,7 @@ const tradesRef = collection(db, "trades");
 
 const tradePoints = { GLD: [], SPXL: [] };
 const tradeLog = { GLD: [], SPXL: [] };
-window.tradePoints = tradePoints; // ✅ Console確認用に公開
+window.tradePoints = tradePoints; // Console確認用
 
 async function fetchETFPrice(symbol) {
   const apiKey = "V5PSUW7YL5FCNL4R";
@@ -92,8 +92,8 @@ function drawCharts(period) {
   const gldFiltered = tradePoints.GLD;
   const spxlFiltered = tradePoints.SPXL;
 
-  const gldData = gldFiltered.map(tp => ({ x: tp.date, y: tp.price }));
-  const spxlData = spxlFiltered.map(tp => ({ x: tp.date, y: tp.price }));
+  const gldData = gldFiltered.map(tp => ({ x: tp.date, y: Number(tp.price) }));
+  const spxlData = spxlFiltered.map(tp => ({ x: tp.date, y: Number(tp.price) }));
 
   const config = (label, data, color) => ({
     type: "line",
