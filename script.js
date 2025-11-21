@@ -113,10 +113,10 @@ function drawCharts(period) {
         data,
         borderColor: color,
         backgroundColor: color + "33",
-        tension: 0.3,
-        pointRadius: 3,
+        tension: 0.4, // 線を滑らかに
+        pointRadius: 4, // 点を大きく
         pointBackgroundColor: color,
-        borderWidth: 2
+        borderWidth: 3 // 線を太く
       }]
     },
     options: {
@@ -124,7 +124,7 @@ function drawCharts(period) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { type: "time", time: { unit: "day" }, title: { display: true, text: "日付" } },
+        x: { type: "time", time: { unit: "month" }, title: { display: true, text: "日付" } },
         y: { beginAtZero: false, title: { display: true, text: "価格（USD）" } }
       },
       plugins: { legend: { display: true } }
@@ -145,6 +145,7 @@ document.getElementById("periodSelector").addEventListener("change", (e) => {
 (async () => {
   await loadTradePoints();
 
+  // ✅ 履歴を強制挿入（10点以上）
   tradePoints.GLD = [
     { date: "2021-01-01", price: 178 },
     { date: "2021-06-01", price: 180 },
