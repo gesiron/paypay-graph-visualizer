@@ -2,70 +2,116 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>PayPayポイント運用グラフ</title>
-  <link rel="stylesheet" href="style.css">
+  <title>GLD/SPXL 履歴グラフ</title>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Luxon -->
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
-  <style>
-    .chart-container {
-      width: 100%;
-      max-width: 800px;
-      height: 300px;
-    }
-    canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-  </style>
+  <!-- PapaParse (CSV読み込み用) -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </head>
 <body>
-  <h1>PayPayポイント運用グラフ</h1>
+  <h1>PayPayポイント運用グラフ（履歴表示）</h1>
 
-  <div class="selector">
-    表示期間：
-    <select id="periodSelector">
-      <option value="1m">1ヶ月</option>
-      <option value="3m">3ヶ月</option>
-      <option value="1y">1年</option>
-      <option value="3y">3年</option>
-      <option value="5y">5年</option>
-    </select>
+  <!-- CSVファイル選択 -->
+  <p>
+    GLD履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'GLD')"><br>
+    SPXL履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'SPXL')">
+  </p>
+
+  <!-- グラフ表示領域 -->
+  <div style="width:800px; height:300px;">
+    <canvas id="gldChart"></canvas>
+  </div>
+  <div style="width:800px; height:300px;">
+    <canvas id="spxlChart"></canvas>
   </div>
 
-  <div class="form-section">
-    <h2>売買ポイントの追加・編集・削除</h2>
-    コース：
-    <select id="courseSelect">
-      <option value="GLD">金コース（GLD）</option>
-      <option value="SPXL">チャレンジコース（SPXL）</option>
-    </select>
-    <br>
-    日付：<input type="date" id="tradeDate">
-    種類：
-    <select id="tradeType">
-      <option value="buy">買い</option>
-      <option value="sell">売り</option>
-    </select>
-    金額：<input type="number" id="tradeAmount" placeholder="例：1000">
-    <button onclick="addOrUpdateTradePoint()">追加/更新</button>
-    <button onclick="deleteTradePoint()">削除</button>
-  </div>
+  <script>
+    const ChartJS = window.Chart;
+    const luxon = window.luxon;
 
-  <section>
-    <h2>金コース（GLD）</h2>
-    <div class="chart-container">
-      <canvas id="gldChart"></canvas>
-    </div>
-  </section>
+    window.gldHistory = [];
+    window.spxlHistory = [];
 
-  <section>
-    <h2>チャレンジコース（SPXL）</h2>
-    <div class="chart-container">
-      <canvas id="spxlChart"></canvas>
-    </div>
-  </section>
+    // CSV読み込み
+    window.loadCSVData = async function (file, target) {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+          const data = results.data
+            .map(row => {
+              // CSVのDate列は "Nov 01, 2020" のような形式
+              const date = luxon.DateTime.fromFormat(row.Date, "MMM DD, YYYY");
+              const price = parseFloat(row["Price"]);
+              return date.isValid && !isNaN(price)
+                ? { x: date.toISODate(), y: price }
+                : null;
+            })
+            .filter(p => p !== null);
 
-  <script type="module" src="script.js"></script>
+          if (target === "GLD") window.gldHistory = data;
+          if (target === "SPXL") window.spxlHistory = data;
+
+          drawHistoryCharts();
+        }
+      });
+    };
+
+    // グラフ描画
+    function drawHistoryCharts() {
+      const config = (label, data, color) => ({
+        type: "line",
+        data: {
+          datasets: [{
+            label,
+            data,
+            borderColor: color,
+            backgroundColor: color + "33",
+            tension: 0.3,
+            pointRadius: 0,
+            borderWidth: 2
+          }]
+        },
+        options: {
+          parsing: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: "time",
+              time: { unit: "month" },
+              title: { display: true, text: "日付" }
+            },
+            y: {
+              title: { display: true, text: "価格（USD）" },
+              beginAtZero: false
+            }
+          },
+          plugins: {
+            legend: { display: true }
+          }
+        }
+      });
+
+      if (window.gldChartInstance) window.gldChartInstance.destroy();
+      if (window.spxlChartInstance) window.spxlChartInstance.destroy();
+
+      if (window.gldHistory.length > 0) {
+        window.gldChartInstance = new ChartJS(
+          document.getElementById("gldChart"),
+          config("GLD履歴", window.gldHistory, "orange")
+        );
+      }
+
+      if (window.spxlHistory.length > 0) {
+        window.spxlChartInstance = new ChartJS(
+          document.getElementById("spxlChart"),
+          config("SPXL履歴", window.spxlHistory, "red")
+        );
+      }
+    }
+  </script>
 </body>
 </html>
