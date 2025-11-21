@@ -9,7 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <!-- Chart.js Luxon adapter -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1"></script>
-  <!-- PapaParse (CSV読み込み用) -->
+  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; }
@@ -23,6 +23,7 @@
   <!-- CSVファイル選択 -->
   <label>GLD履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'GLD')"></label>
   <label>SPXL履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'SPXL')"></label>
+  <label>売買履歴CSV: <input type="file" onchange="loadTradeData(this.files[0])"></label>
 
   <!-- グラフ表示領域 -->
   <div class="chart-container">
@@ -32,7 +33,7 @@
     <canvas id="spxlChart"></canvas>
   </div>
 
-  <!-- 外部JavaScriptファイルを読み込み -->
+  <!-- 外部JavaScript -->
   <script src="script.js"></script>
 </body>
 </html>
