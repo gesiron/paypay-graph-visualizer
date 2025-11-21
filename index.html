@@ -3,19 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>PayPayポイント運用グラフ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- スタイル -->
   <link rel="stylesheet" href="style.css">
-  <!-- Chart.js / Luxon / Chart.js adapter（グローバル提供）-->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
 </head>
 <body>
   <h1>PayPayポイント運用グラフ</h1>
 
   <div class="selector">
-    <label for="periodSelector">表示期間：</label>
+    表示期間：
     <select id="periodSelector">
       <option value="1m">1ヶ月</option>
       <option value="3m">3ヶ月</option>
@@ -26,29 +22,22 @@
   </div>
 
   <div class="form-section">
-    <h3>売買ポイントの追加・編集・削除</h3>
-    <label>コース：</label>
+    <h2>売買ポイントの追加・編集・削除</h2>
+    コース：
     <select id="courseSelect">
       <option value="GLD">金コース（GLD）</option>
       <option value="SPXL">チャレンジコース（SPXL）</option>
     </select>
-    <label>日付：</label>
-    <input type="date" id="tradeDate">
-    <label>種類：</label>
-    <select id="tradeType">
-      <option value="buy">買い</option>
-      <option value="sell">売り</option>
-    </select>
-    <label>金額：</label>
-    <input type="number" id="tradeAmount" placeholder="例: 1000">
+    <br>
+    日付：<input type="text" id="tradeDate" placeholder="yyyy/mm/dd">
+    金額：<input type="number" id="tradeAmount" placeholder="例：1000">
     <button onclick="addOrUpdateTradePoint()">追加/更新</button>
     <button onclick="deleteTradePoint()">削除</button>
   </div>
 
   <div class="form-section">
-    <h3>ETF価格の取得</h3>
-    <label>ETFシンボル：</label>
-    <input type="text" id="symbolInput" placeholder="例: SPY, GLD, SPXL">
+    <h2>ETF価格の取得</h2>
+    ETFシンボル：<input type="text" id="symbolInput" placeholder="例：SPY, GLD, SPXL">
     <button onclick="showPrice()">価格を取得</button>
     <div id="priceResult"></div>
   </div>
@@ -67,7 +56,6 @@
     </div>
   </section>
 
-  <!-- モジュールとしてscript.jsを読み込む -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
