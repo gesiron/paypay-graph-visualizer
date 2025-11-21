@@ -171,3 +171,13 @@ function drawCharts(period) {
 }
 
 document.getElementById("periodSelector").addEventListener("change",
+  (e) => {
+    drawCharts(e.target.value);
+  }
+);
+
+// 初期読み込み
+(async () => {
+  await loadTradePoints();
+  drawCharts("1m");
+})();
