@@ -23,7 +23,20 @@
   <!-- CSVファイル選択 -->
   <label>GLD履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'GLD')"></label>
   <label>SPXL履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'SPXL')"></label>
-  <label>売買履歴CSV: <input type="file" onchange="loadTradeData(this.files[0])"></label>
+
+  <!-- 売買履歴手動入力フォーム -->
+  <h2>売買履歴を手動入力</h2>
+  <form onsubmit="addTradeMarker(event)">
+    <label>日付: <input type="date" id="tradeDate" required></label>
+    <label>種別: 
+      <select id="tradeType">
+        <option value="Buy">Buy</option>
+        <option value="Sell">Sell</option>
+      </select>
+    </label>
+    <label>金額: <input type="number" id="tradeAmount" required></label>
+    <button type="submit">追加</button>
+  </form>
 
   <!-- グラフ表示領域 -->
   <div class="chart-container">
