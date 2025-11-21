@@ -1,16 +1,3 @@
-const ChartJS = window.Chart;
-
-// Chart.js Luxon adapter を明示的に登録
-ChartJS.adapters._date.override({
-  parse: (value) => {
-    const dt = window.luxon.DateTime.fromISO(value);
-    return dt.isValid ? dt.toMillis() : null;
-  },
-  format: (time, format) => {
-    return window.luxon.DateTime.fromMillis(time).toFormat(format);
-  }
-});
-
 window.gldHistory = [];
 window.spxlHistory = [];
 window.gldChartInstance = null;
@@ -30,15 +17,15 @@ window.loadCSVData = async function (file, target) {
       const priceKey = priceKeys.find(k => k in sample) || "Price";
 
       const parseDateFlexible = (raw) => {
-        if (!raw) return window.luxon.DateTime.invalid("empty");
+        if (!raw) return luxon.DateTime.invalid("empty");
         const s = String(raw).trim();
-        if (s.length === 0) return window.luxon.DateTime.invalid("empty");
+        if (s.length === 0) return luxon.DateTime.invalid("empty");
 
-        let d = window.luxon.DateTime.fromFormat(s, "MMM dd, yyyy");
-        if (!d.isValid) d = window.luxon.DateTime.fromFormat(s, "yyyy-MM-dd");
-        if (!d.isValid) d = window.luxon.DateTime.fromFormat(s, "yyyy/M/d");
-        if (!d.isValid) d = window.luxon.DateTime.fromFormat(s, "M/d/yyyy");
-        if (!d.isValid) d = window.luxon.DateTime.fromISO(s);
+        let d = luxon.DateTime.fromFormat(s, "MMM dd, yyyy");
+        if (!d.isValid) d = luxon.DateTime.fromFormat(s, "yyyy-MM-dd");
+        if (!d.isValid) d = luxon.DateTime.fromFormat(s, "yyyy/M/d");
+        if (!d.isValid) d = luxon.DateTime.fromFormat(s, "M/d/yyyy");
+        if (!d.isValid) d = luxon.DateTime.fromISO(s);
         return d;
       };
 
@@ -104,14 +91,14 @@ function drawHistoryCharts() {
   });
 
   if (window.gldHistory.length > 0) {
-    window.gldChartInstance = new ChartJS(
+    window.gldChartInstance = new Chart(
       document.getElementById("gldChart"),
       config("GLD履歴", window.gldHistory, "orange")
     );
   }
 
   if (window.spxlHistory.length > 0) {
-    window.spxlChartInstance = new ChartJS(
+    window.spxlChartInstance = new Chart(
       document.getElementById("spxlChart"),
       config("SPXL履歴", window.spxlHistory, "red")
     );
