@@ -9,109 +9,28 @@
   <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
   <!-- PapaParse (CSV読み込み用) -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .chart-container { width: 100%; max-width: 800px; margin-bottom: 40px; }
+    label { display: block; margin: 10px 0; }
+  </style>
 </head>
 <body>
   <h1>PayPayポイント運用グラフ（履歴表示）</h1>
 
   <!-- CSVファイル選択 -->
-  <p>
-    GLD履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'GLD')"><br>
-    SPXL履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'SPXL')">
-  </p>
+  <label>GLD履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'GLD')"></label>
+  <label>SPXL履歴CSV: <input type="file" onchange="loadCSVData(this.files[0], 'SPXL')"></label>
 
   <!-- グラフ表示領域 -->
-  <div style="width:800px; height:300px;">
+  <div class="chart-container">
     <canvas id="gldChart"></canvas>
   </div>
-  <div style="width:800px; height:300px;">
+  <div class="chart-container">
     <canvas id="spxlChart"></canvas>
   </div>
 
-  <script>
-    const ChartJS = window.Chart;
-    const luxon = window.luxon;
-
-    window.gldHistory = [];
-    window.spxlHistory = [];
-
-    // CSV読み込み
-    window.loadCSVData = async function (file, target) {
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function (results) {
-          const data = results.data
-            .map(row => {
-              // CSVのDate列は "Nov 01, 2020" のような形式
-              const date = luxon.DateTime.fromFormat(row.Date, "MMM DD, YYYY");
-              const price = parseFloat(row["Price"]);
-              return date.isValid && !isNaN(price)
-                ? { x: date.toISODate(), y: price }
-                : null;
-            })
-            .filter(p => p !== null);
-
-          if (target === "GLD") window.gldHistory = data;
-          if (target === "SPXL") window.spxlHistory = data;
-
-          drawHistoryCharts();
-        }
-      });
-    };
-
-    // グラフ描画
-    function drawHistoryCharts() {
-      const config = (label, data, color) => ({
-        type: "line",
-        data: {
-          datasets: [{
-            label,
-            data,
-            borderColor: color,
-            backgroundColor: color + "33",
-            tension: 0.3,
-            pointRadius: 0,
-            borderWidth: 2
-          }]
-        },
-        options: {
-          parsing: false,
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              type: "time",
-              time: { unit: "month" },
-              title: { display: true, text: "日付" }
-            },
-            y: {
-              title: { display: true, text: "価格（USD）" },
-              beginAtZero: false
-            }
-          },
-          plugins: {
-            legend: { display: true }
-          }
-        }
-      });
-
-      if (window.gldChartInstance) window.gldChartInstance.destroy();
-      if (window.spxlChartInstance) window.spxlChartInstance.destroy();
-
-      if (window.gldHistory.length > 0) {
-        window.gldChartInstance = new ChartJS(
-          document.getElementById("gldChart"),
-          config("GLD履歴", window.gldHistory, "orange")
-        );
-      }
-
-      if (window.spxlHistory.length > 0) {
-        window.spxlChartInstance = new ChartJS(
-          document.getElementById("spxlChart"),
-          config("SPXL履歴", window.spxlHistory, "red")
-        );
-      }
-    }
-  </script>
+  <!-- JavaScriptファイル読み込み -->
+  <script src="script.js"></script>
 </body>
 </html>
