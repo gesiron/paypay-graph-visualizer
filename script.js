@@ -89,7 +89,7 @@ async function loadTradePoints() {
 }
 
 function drawCharts(period) {
-  const gldFiltered = tradePoints.GLD; // ✅ フィルター解除
+  const gldFiltered = tradePoints.GLD;
   const spxlFiltered = tradePoints.SPXL;
 
   const gldData = gldFiltered.map(tp => ({ x: tp.date, y: tp.price }));
@@ -114,7 +114,7 @@ function drawCharts(period) {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { type: "time", time: { unit: "month" }, title: { display: true, text: "日付" } },
+        x: { type: "time", time: { unit: "day" }, title: { display: true, text: "日付" } },
         y: { beginAtZero: false, title: { display: true, text: "価格（USD）" } }
       },
       plugins: { legend: { display: true } }
@@ -136,29 +136,29 @@ document.getElementById("periodSelector").addEventListener("change", (e) => {
   await loadTradePoints();
 
   tradePoints.GLD = [
-    { date: "2021-01-01", price: 178 },
-    { date: "2021-06-01", price: 180 },
-    { date: "2022-01-01", price: 182 },
-    { date: "2022-06-01", price: 184 },
-    { date: "2023-01-01", price: 185 },
-    { date: "2023-06-01", price: 187 },
-    { date: "2024-01-01", price: 190 },
-    { date: "2024-06-01", price: 192 },
-    { date: "2025-01-01", price: 195 },
-    { date: "2025-11-21", price: 196 }
+    { date: "2025-11-21", price: 195 },
+    { date: "2025-11-22", price: 196 },
+    { date: "2025-11-23", price: 197 },
+    { date: "2025-11-24", price: 198 },
+    { date: "2025-11-25", price: 199 },
+    { date: "2025-11-26", price: 200 },
+    { date: "2025-11-27", price: 201 },
+    { date: "2025-11-28", price: 202 },
+    { date: "2025-11-29", price: 203 },
+    { date: "2025-11-30", price: 204 }
   ];
   tradePoints.SPXL = [
-    { date: "2021-01-01", price: 85 },
-    { date: "2021-06-01", price: 88 },
-    { date: "2022-01-01", price: 90 },
-    { date: "2022-06-01", price: 93 },
-    { date: "2023-01-01", price: 95 },
-    { date: "2023-06-01", price: 97 },
-    { date: "2024-01-01", price: 100 },
-    { date: "2024-06-01", price: 102 },
-    { date: "2025-01-01", price: 105 },
-    { date: "2025-11-21", price: 106 }
+    { date: "2025-11-21", price: 105 },
+    { date: "2025-11-22", price: 106 },
+    { date: "2025-11-23", price: 107 },
+    { date: "2025-11-24", price: 108 },
+    { date: "2025-11-25", price: 109 },
+    { date: "2025-11-26", price: 110 },
+    { date: "2025-11-27", price: 111 },
+    { date: "2025-11-28", price: 112 },
+    { date: "2025-11-29", price: 113 },
+    { date: "2025-11-30", price: 114 }
   ];
 
-  drawCharts("5y");
+  drawCharts("1m");
 })();
