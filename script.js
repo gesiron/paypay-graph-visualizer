@@ -23,17 +23,12 @@ async function fetchETFPrice(symbol) {
   try {
     const response = await fetch(url);
     const data = await response.json();
-    console.log("Alpha Vantageレスポンス:", data);
-    if (!data["Time Series (Daily)"]) {
-      console.error("データ取得失敗:", data);
-      return null;
-    }
+    if (!data["Time Series (Daily)"]) return null;
     const ts = data["Time Series (Daily)"];
     const latestDate = Object.keys(ts).sort().pop();
     const latestClose = parseFloat(ts[latestDate]["4. close"]);
     return { symbol, date: latestDate, close: latestClose };
-  } catch (error) {
-    console.error("API呼び出しエラー:", error);
+  } catch {
     return null;
   }
 }
@@ -48,33 +43,23 @@ window.showPrice = async function showPrice() {
 
 const tradePoints = { GLD: [], SPXL: [] };
 
-window.addOrUpdateTradePoint = async function addOrUpdateTradePoint() {
+window.addOrUpdateTradePoint = async function () {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
   const type = document.getElementById("tradeType")?.value || "buy";
   const amount = parseFloat(document.getElementById("tradeAmount").value);
-
-  if (!course || !date || !type || isNaN(amount)) {
-    alert("すべての項目を正しく入力してください");
-    return;
-  }
+  if (!course || !date || !type || isNaN(amount)) return alert("すべての項目を正しく入力してください");
 
   const docId = `${course}_${date}`;
   const priceData = await fetchETFPrice(course);
   const price = priceData ? priceData.close : null;
-
-  if (price === null) {
-    alert("価格取得に失敗しました。");
-    return;
-  }
-
-  console.log("保存するデータ:", { course, date, type, amount, price });
+  if (price === null) return alert("価格取得に失敗しました。");
 
   await setDoc(doc(tradesRef, docId), { course, date, type, amount, price });
   await loadTradePoints();
 };
 
-window.deleteTradePoint = async function deleteTradePoint() {
+window.deleteTradePoint = async function () {
   const course = document.getElementById("courseSelect").value;
   const date = document.getElementById("tradeDate").value;
   const docId = `${course}_${date}`;
@@ -104,27 +89,18 @@ async function loadTradePoints() {
 async function fetchHistory(symbol) {
   const apiKey = "XKSZLMWIKG9JRKBK";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=full`;
-
   try {
     const response = await fetch(url);
     const data = await response.json();
-    if (!data["Time Series (Daily)"]) {
-      console.error("履歴データ取得失敗:", data);
-      return [];
-    }
-
+    if (!data["Time Series (Daily)"]) return [];
     const ts = data["Time Series (Daily)"];
     const fiveYearsAgo = luxon.DateTime.now().minus({ years: 5 });
 
     return Object.entries(ts)
-      .map(([date, values]) => ({
-        date,
-        price: parseFloat(values["4. close"])
-      }))
+      .map(([date, values]) => ({ date, price: parseFloat(values["4. close"]) }))
       .filter(d => luxon.DateTime.fromISO(d.date) >= fiveYearsAgo)
       .sort((a, b) => new Date(a.date) - new Date(b.date));
-  } catch (error) {
-    console.error("API呼び出しエラー:", error);
+  } catch {
     return [];
   }
 }
@@ -141,14 +117,8 @@ function drawCharts(period) {
     default: startDate = now.minus({ months: 1 });
   }
 
-  const gldFiltered = tradePoints.GLD.filter(tp => {
-    const dt = luxon.DateTime.fromISO(tp.date);
-    return tp.price !== null && dt.isValid && dt >= startDate;
-  });
-  const spxlFiltered = tradePoints.SPXL.filter(tp => {
-    const dt = luxon.DateTime.fromISO(tp.date);
-    return tp.price !== null && dt.isValid && dt >= startDate;
-  });
+  const gldFiltered = tradePoints.GLD.filter(tp => luxon.DateTime.fromISO(tp.date) >= startDate);
+  const spxlFiltered = tradePoints.SPXL.filter(tp => luxon.DateTime.fromISO(tp.date) >= startDate);
 
   const gldData = gldFiltered.map(tp => ({ x: tp.date, y: tp.price }));
   const spxlData = spxlFiltered.map(tp => ({ x: tp.date, y: tp.price }));
