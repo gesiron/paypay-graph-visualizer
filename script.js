@@ -47,32 +47,25 @@ window.loadCSVData = async function (file, target) {
   });
 };
 
-window.loadTradeData = async function (file) {
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: function (results) {
-      const rows = results.data;
-      const dateKey = ["Date", "日付"].find(k => k in rows[0]) || "Date";
-      const typeKey = ["Type", "種別"].find(k => k in rows[0]) || "Type";
+window.addTradeMarker = function (event) {
+  event.preventDefault();
+  const date = document.getElementById("tradeDate").value;
+  const type = document.getElementById("tradeType").value;
+  const amount = parseFloat(document.getElementById("tradeAmount").value);
 
-      window.tradeMarkers = rows
-        .map(row => {
-          const d = luxon.DateTime.fromISO(String(row[dateKey]).trim());
-          const type = String(row[typeKey]).trim().toLowerCase();
-          return d.isValid && (type === "buy" || type === "sell")
-            ? {
-                x: d.toISODate(),
-                y: null, // 後で補完
-                type
-              }
-            : null;
-        })
-        .filter(p => p !== null);
+  if (!date || isNaN(amount)) return;
 
-      drawHistoryCharts();
-    }
+  const d = luxon.DateTime.fromISO(date);
+  if (!d.isValid) return;
+
+  window.tradeMarkers.push({
+    x: d.toISODate(),
+    y: null,
+    type: type.toLowerCase(),
+    amount
   });
+
+  drawHistoryCharts();
 };
 
 function drawHistoryCharts() {
