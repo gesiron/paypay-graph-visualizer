@@ -18,7 +18,7 @@ const db = getFirestore(app);
 const tradesRef = collection(db, "trades");
 
 async function fetchETFPrice(symbol) {
-  const apiKey = "XYL4EVSMPCABG61C";
+  const apiKey = "XKSZLMWIKG9JRKBK";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
   try {
     const response = await fetch(url);
@@ -104,7 +104,7 @@ async function loadTradePoints() {
 }
 
 async function fetchHistory(symbol) {
-  const apiKey = "XYL4EVSMPCABG61C";
+  const apiKey = "XKSZLMWIKG9JRKBK";
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=full`;
 
   try {
