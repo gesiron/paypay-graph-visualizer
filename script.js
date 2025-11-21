@@ -1,15 +1,13 @@
 const ChartJS = window.Chart;
-const luxon = window.luxon;
 
-// Chart.js に Luxon adapter を明示的に登録
+// Chart.js Luxon adapter を明示的に登録
 ChartJS.adapters._date.override({
-  formats: { date: 'yyyy-MM-dd' },
   parse: (value) => {
-    const dt = luxon.DateTime.fromISO(value);
+    const dt = window.luxon.DateTime.fromISO(value);
     return dt.isValid ? dt.toMillis() : null;
   },
   format: (time, format) => {
-    return luxon.DateTime.fromMillis(time).toFormat(format);
+    return window.luxon.DateTime.fromMillis(time).toFormat(format);
   }
 });
 
@@ -32,15 +30,15 @@ window.loadCSVData = async function (file, target) {
       const priceKey = priceKeys.find(k => k in sample) || "Price";
 
       const parseDateFlexible = (raw) => {
-        if (!raw) return luxon.DateTime.invalid("empty");
+        if (!raw) return window.luxon.DateTime.invalid("empty");
         const s = String(raw).trim();
-        if (s.length === 0) return luxon.DateTime.invalid("empty");
+        if (s.length === 0) return window.luxon.DateTime.invalid("empty");
 
-        let d = luxon.DateTime.fromFormat(s, "MMM dd, yyyy");
-        if (!d.isValid) d = luxon.DateTime.fromFormat(s, "yyyy-MM-dd");
-        if (!d.isValid) d = luxon.DateTime.fromFormat(s, "yyyy/M/d");
-        if (!d.isValid) d = luxon.DateTime.fromFormat(s, "M/d/yyyy");
-        if (!d.isValid) d = luxon.DateTime.fromISO(s);
+        let d = window.luxon.DateTime.fromFormat(s, "MMM dd, yyyy");
+        if (!d.isValid) d = window.luxon.DateTime.fromFormat(s, "yyyy-MM-dd");
+        if (!d.isValid) d = window.luxon.DateTime.fromFormat(s, "yyyy/M/d");
+        if (!d.isValid) d = window.luxon.DateTime.fromFormat(s, "M/d/yyyy");
+        if (!d.isValid) d = window.luxon.DateTime.fromISO(s);
         return d;
       };
 
@@ -62,7 +60,6 @@ window.loadCSVData = async function (file, target) {
 };
 
 function drawHistoryCharts() {
-  // 既存グラフを破棄（Canvas再利用エラー防止）
   if (window.gldChartInstance) {
     window.gldChartInstance.destroy();
     window.gldChartInstance = null;
