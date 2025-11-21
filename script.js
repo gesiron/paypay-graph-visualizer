@@ -19,7 +19,7 @@ const tradesRef = collection(db, "trades");
 
 const tradePoints = { GLD: [], SPXL: [] };
 const tradeLog = { GLD: [], SPXL: [] };
-window.tradePoints = tradePoints; // ✅ Console確認用に公開
+window.tradePoints = tradePoints; // Console確認用に公開
 
 async function fetchETFPrice(symbol) {
   const apiKey = "V5PSUW7YL5FCNL4R";
