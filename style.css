@@ -1,0 +1,6 @@
+body { font-family: system-ui, sans-serif; margin: 20px; }
+h1 { color: #0b6cff; margin-bottom: 16px; }
+.selector, .form-section { margin: 16px 0; }
+.chart-container { position: relative; height: 320px; }
+label { margin-right: 8px; }
+input, select, button { margin-right: 8px; padding: 6px 10px; }
