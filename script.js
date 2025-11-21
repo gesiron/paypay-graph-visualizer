@@ -26,6 +26,7 @@ window.loadCSVData = async function (file, target) {
         if (!d.isValid) d = luxon.DateTime.fromFormat(s, "yyyy-MM-dd");
         if (!d.isValid) d = luxon.DateTime.fromFormat(s, "yyyy/M/d");
         if (!d.isValid) d = luxon.DateTime.fromFormat(s, "M/d/yyyy");
+        if (!d.isValid) d = luxon.DateTime.fromFormat(s, "MM/dd/yyyy"); // ← 追加済み
         if (!d.isValid) d = luxon.DateTime.fromISO(s);
         return d;
       };
@@ -116,7 +117,7 @@ function drawHistoryCharts() {
       scales: {
         x: {
           type: "time",
-          time: { unit: "month" },
+          time: { unit: "year" }, // ← 5年分表示に最適化
           title: { display: true, text: "日付" }
         },
         y: {
