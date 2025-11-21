@@ -76,8 +76,9 @@ async function loadTradePoints() {
 
   snapshot.forEach(docSnap => {
     const data = docSnap.data();
-    const normalizedDate = String(data.date).replace(/\//g, "-").substring(0, 10);
-    if (tradeLog[data.course]) {
+    const isoDate = luxon.DateTime.fromISO(String(data.date).replace(/\//g, "-").substring(0, 10));
+    const normalizedDate = isoDate.isValid ? isoDate.toISODate() : null;
+    if (normalizedDate && tradeLog[data.course]) {
       tradeLog[data.course].push({
         date: normalizedDate,
         type: data.type,
@@ -107,24 +108,24 @@ function drawCharts(period) {
 
   const gldFiltered = tradePoints.GLD.filter(tp => {
     const date = luxon.DateTime.fromISO(tp.date);
-    return date >= startDate;
+    return date.isValid && date >= startDate;
   });
 
   const spxlFiltered = tradePoints.SPXL.filter(tp => {
     const date = luxon.DateTime.fromISO(tp.date);
-    return date >= startDate;
+    return date.isValid && date >= startDate;
   });
 
   const gldData = gldFiltered
     .map(tp => ({
-      x: luxon.DateTime.fromISO(tp.date).toISODate(), // ← ISO文字列に変更
+      x: tp.date, // ISO文字列
       y: Number(tp.price)
     }))
     .filter(p => !isNaN(p.y));
 
   const spxlData = spxlFiltered
     .map(tp => ({
-      x: luxon.DateTime.fromISO(tp.date).toISODate(),
+      x: tp.date,
       y: Number(tp.price)
     }))
     .filter(p => !isNaN(p.y));
