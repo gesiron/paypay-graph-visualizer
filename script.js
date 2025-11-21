@@ -1,11 +1,9 @@
-// CDNから直接import（モジュール）
+// Firebase CDNモジュール読み込み
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// Chartはグローバル読み込み済み（Chart.js CDN）→ window.Chart を利用
+// Chart.jsとLuxonはグローバル読み込み済み
 const ChartJS = window.Chart;
-
-// Luxonはグローバル読み込み済み → window.luxon を利用
 const luxon = window.luxon;
 
 // Firebase設定
@@ -22,34 +20,45 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const tradesRef = collection(db, "trades");
 
-// Alpha VantageからETF価格取得
+// Alpha Vantage APIからETF価格を取得
 async function fetchETFPrice(symbol) {
-  const apiKey = "XYL4EVSMPCABG61C";
+  const apiKey = 'XYL4EVSMPCABG61C';
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${apiKey}&outputsize=compact`;
+
   try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (!data["Time Series (Daily)"]) {
-      console.error("データ取得失敗:", data);
+    const response = await fetch(url);
+    const data = await response.json();
+
+    console.log("Alpha Vantageレスポンス:", data); // ← 追加
+
+    if (!data['Time Series (Daily)']) {
+      console.error('データ取得失敗:', data);
       return null;
     }
-    const ts = data["Time Series (Daily)"];
-    const latestDate = Object.keys(ts).sort().pop();
-    const latestClose = parseFloat(ts[latestDate]["4. close"]);
-    return { symbol, date: latestDate, close: latestClose };
-  } catch (e) {
-    console.error("API呼び出しエラー:", e);
+
+    const timeSeries = data['Time Series (Daily)'];
+    const latestDate = Object.keys(timeSeries).sort().pop();
+    const latestClose = timeSeries[latestDate]['4. close'];
+
+    return {
+      symbol,
+      date: latestDate,
+      close: parseFloat(latestClose)
+    };
+  } catch (error) {
+    console.error('API呼び出しエラー:', error);
     return null;
   }
 }
 
-// 価格表示（取得は手動）
+// ETF価格を表示
 window.showPrice = async function showPrice() {
   const symbol = document.getElementById("symbolInput").value.trim().toUpperCase();
   const result = await fetchETFPrice(symbol);
-  document.getElementById("priceResult").innerText =
-    result ? `${result.symbol} の最新価格（${result.date}）: ${result.close} USD`
-           : "価格の取得に失敗しました。";
+
+  document.getElementById("priceResult").innerText = result
+    ? `${result.symbol} の最新価格（${result.date}）: ${result.close} USD`
+    : "価格の取得に失敗しました。";
 };
 
 // 売買ポイント管理
@@ -69,10 +78,13 @@ window.addOrUpdateTradePoint = async function addOrUpdateTradePoint() {
   const docId = `${course}_${date}`;
   const priceData = await fetchETFPrice(course);
   const price = priceData ? priceData.close : null;
+
   if (price === null) {
     alert("価格取得に失敗しました。");
     return;
   }
+
+  console.log("保存するデータ:", { course, date, type, amount, price }); // ← 追加
 
   await setDoc(doc(tradesRef, docId), { course, date, type, amount, price });
   await loadTradePoints();
@@ -92,11 +104,17 @@ async function loadTradePoints() {
   const snapshot = await getDocs(tradesRef);
   tradePoints.GLD = [];
   tradePoints.SPXL = [];
-  snapshot.forEach(d => {
-    const data = d.data();
+
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    console.log("Firestoreデータ:", data); // ← 追加
+
     if (tradePoints[data.course]) {
       tradePoints[data.course].push({
-        date: data.date, type: data.type, amount: data.amount, price: data.price
+        date: data.date.replace(/\//g, "-"), // Luxon対応
+        type: data.type,
+        amount: data.amount,
+        price: data.price
       });
     }
   });
@@ -105,6 +123,7 @@ async function loadTradePoints() {
 // グラフ描画（期間フィルタ付き）
 function drawCharts(period) {
   const now = luxon.DateTime.now();
+
   let startDate;
   switch (period) {
     case "1m": startDate = now.minus({ months: 1 }); break;
@@ -116,22 +135,37 @@ function drawCharts(period) {
   }
 
   const gldData = tradePoints.GLD
-    .filter(tp => luxon.DateTime.fromISO(tp.date) >= startDate)
+    .filter(tp => tp.price !== null && luxon.DateTime.fromISO(tp.date) >= startDate)
     .map(tp => ({ x: tp.date, y: tp.price }));
 
   const spxlData = tradePoints.SPXL
-    .filter(tp => luxon.DateTime.fromISO(tp.date) >= startDate)
+    .filter(tp => tp.price !== null && luxon.DateTime.fromISO(tp.date) >= startDate)
     .map(tp => ({ x: tp.date, y: tp.price }));
 
   const config = (label, data, color) => ({
-    type: "line",
-    data: { datasets: [{ label, data, borderColor: color, backgroundColor: color + "33", tension: 0.3 }] },
+    type: 'line',
+    data: {
+      datasets: [{
+        label,
+        data,
+        borderColor: color,
+        backgroundColor: color + '33',
+        tension: 0.3
+      }]
+    },
     options: {
       parsing: false,
       responsive: true,
       scales: {
-        x: { type: "time", time: { unit: "day" }, title: { display: true, text: "日付" } },
-        y: { beginAtZero: false, title: { display: true, text: "価格（USD）" } }
+        x: {
+          type: 'time',
+          time: { unit: 'day' },
+          title: { display: true, text: '日付' }
+        },
+        y: {
+          beginAtZero: false,
+          title: { display: true, text: '価格（USD）' }
+        }
       },
       plugins: { legend: { display: true } }
     }
@@ -144,11 +178,12 @@ function drawCharts(period) {
   window.spxlChartInstance = new ChartJS(document.getElementById("spxlChart"), config("SPXL価格", spxlData, "red"));
 }
 
-// イベントと初期化
+// 表示期間変更時にグラフ更新
 document.getElementById("periodSelector").addEventListener("change", (e) => {
   drawCharts(e.target.value);
 });
 
+// 初期読み込み
 (async () => {
   await loadTradePoints();
   drawCharts("1m");
